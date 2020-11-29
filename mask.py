@@ -2,7 +2,7 @@ import torch
 def create_mask(src: torch.Tensor,
                 trg: torch.Tensor,
                 src_pad_idx: int,
-                trg_pad_idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+                trg_pad_idx: int):
     src_mask = _create_padding_mask(src, src_pad_idx)
     trg_mask = None
     if trg is not None:
@@ -11,7 +11,7 @@ def create_mask(src: torch.Tensor,
         trg_mask = trg_mask & nopeak_mask  # (256, 33, 33)
     return src_mask, trg_mask
 
-def _create_padding_mask(seq: torch.Tensor, pad_idx: int) -> torch.Tensor:
+def _create_padding_mask(seq_q, seq_k, pad_idx: int):
     """
     seq 형태를  (256, 33) -> (256, 1, 31) 이렇게 변경합니다.
 
@@ -21,13 +21,18 @@ def _create_padding_mask(seq: torch.Tensor, pad_idx: int) -> torch.Tensor:
             [[ True,  True, False, False, False, False, False]],
             [[ True,  True,  True,  True,  True,  True, False]]])
     """
-    return (seq != pad_idx).unsqueeze(-2)
+    batch_size = seq_q.size(0)
+    len_q = seq_q.size(1)
+    len_k = seq_k.size(1)
+    pad_attn_mask = seq_k.data.eq(pad_idx)
+    pad_attn_mask = pad_attn_mask.unsqueeze(1).expand(batch_size, len_q, len_k)
+    return pad_attn_mask
 
-def _create_nopeak_mask(trg) -> torch.Tensor:
+def _create_attn_decoder_mask(seq):
     """
-    NO PEAK MASK
+    Attention Decoder MASK
     Target의 경우 그 다음 단어를 못보게 가린다
     """
-    batch_size, seq_len = trg.size()
-    nopeak_mask = (1 - torch.triu(torch.ones(1, seq_len, seq_len, device=trg.device), diagonal=1)).bool()
-    return nopeak_mask
+    decoder_mask = torch.one_like(seq).unsqueeze(-1).expand( seq.size(0), seq.size(1), seq.size(1))
+    decoder_mask = decoder_mask.triu(torch.ones(diagonal=1))
+    return decoder_mask
