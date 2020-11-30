@@ -1,7 +1,7 @@
 {
     "pad_ind": 0,
-    "n_enc_vocab": len(vocab),
-    "n_dec_vocab": len(vocab),
+//    "n_enc_vocab": len(vocab),
+//    "n_dec_vocab": len(vocab),
     "n_enc_seq": 256, // max seq length
     "n_dec_seq": 256,
     "emb_dim": 512,

@@ -1,17 +1,17 @@
 import torch
-def create_mask(src: torch.Tensor,
-                trg: torch.Tensor,
-                src_pad_idx: int,
-                trg_pad_idx: int):
-    src_mask = _create_padding_mask(src, src_pad_idx)
-    trg_mask = None
-    if trg is not None:
-        trg_mask = _create_padding_mask(trg, trg_pad_idx)  # (256, 1, 33)
-        nopeak_mask = _create_nopeak_mask(trg)  # (1, 33, 33)
-        trg_mask = trg_mask & nopeak_mask  # (256, 33, 33)
-    return src_mask, trg_mask
+# def create_mask(src: torch.Tensor,
+#                 trg: torch.Tensor,
+#                 src_pad_idx: int,
+#                 trg_pad_idx: int):
+#     src_mask = _create_padding_mask(src, src_pad_idx)
+#     trg_mask = None
+#     if trg is not None:
+#         trg_mask = _create_padding_mask(trg, trg_pad_idx)  # (256, 1, 33)
+#         nopeak_mask = _create_nopeak_mask(trg)  # (1, 33, 33)
+#         trg_mask = trg_mask & nopeak_mask  # (256, 33, 33)
+#     return src_mask, trg_mask
 
-def _create_padding_mask(seq_q, seq_k, pad_idx: int):
+def create_padding_mask(seq_q, seq_k, pad_idx: int):
     """
     seq 형태를  (256, 33) -> (256, 1, 31) 이렇게 변경합니다.
 
@@ -28,11 +28,11 @@ def _create_padding_mask(seq_q, seq_k, pad_idx: int):
     pad_attn_mask = pad_attn_mask.unsqueeze(1).expand(batch_size, len_q, len_k)
     return pad_attn_mask
 
-def _create_attn_decoder_mask(seq):
+def create_attn_decoder_mask(seq):
     """
     Attention Decoder MASK
     Target의 경우 그 다음 단어를 못보게 가린다
     """
     decoder_mask = torch.one_like(seq).unsqueeze(-1).expand( seq.size(0), seq.size(1), seq.size(1))
-    decoder_mask = decoder_mask.triu(torch.ones(diagonal=1))
+    decoder_mask = decoder_mask.triu(torch.ones(diagonal=1)) # torch.triu: nxn 행렬에서 위쪽 삼각을 리턴
     return decoder_mask
