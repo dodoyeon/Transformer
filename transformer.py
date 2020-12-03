@@ -7,8 +7,8 @@ class EncoderLayer(nn.Module):
     def __init__(self, emb_dim, n_head, dropout_attn, dropout_multi, d_ff, dropout_ff, layernorm_epsilon):
         super().__init__()
         self.multiheadattn = MultiHeadAttention(emb_dim, n_head, dropout_attn, dropout_multi)
-        self.normal_layer1 = nn.LayerNorm(eps= layernorm_epsilon)
-        self.normal_layer2 = nn.LayerNorm(eps= layernorm_epsilon)
+        self.normal_layer1 = nn.LayerNorm(emb_dim, eps= layernorm_epsilon)
+        self.normal_layer2 = nn.LayerNorm(emb_dim, eps= layernorm_epsilon)
         self.posffn_layer = PositionalFeedForward(emb_dim, d_ff, dropout_ff)
 
     def forward(self, enc_input):
@@ -52,11 +52,11 @@ class DecoderLayer(nn.Module):
     def __init__(self, emb_dim, n_head, dropout_attn, dropout_multi,d_ff, dropout_ff, layernorm_epsilon):
         super().__init__()
         self.multi_head_attn = MultiHeadAttention(emb_dim, n_head, dropout_attn, dropout_multi)
-        self.normal_layer1 = nn.LayerNorm(eps = layernorm_epsilon)
+        self.normal_layer1 = nn.LayerNorm(emb_dim, eps = layernorm_epsilon)
         self.masked_attn = MultiHeadAttention(emb_dim, n_head, dropout_attn, dropout_multi)
-        self.normal_layer2 = nn.LayerNorm(eps = layernorm_epsilon)
+        self.normal_layer2 = nn.LayerNorm(emb_dim, eps = layernorm_epsilon)
         self.posffn_layer = PositionalFeedForward(emb_dim, d_ff, dropout_ff)
-        self.normal_layer3 = nn.LayerNorm(eps=layernorm_epsilon)
+        self.normal_layer3 = nn.LayerNorm(emb_dim, eps=layernorm_epsilon)
 
     def forward(self, dec_input, enc_output, self_attn_mask, enc_dec_mask):
         input_q = dec_input
@@ -84,10 +84,10 @@ class Decoder(nn.Module):
         self.embedding_layer = Embedding(voca_size, emb_dim)
         self.position_layer = PositionalEncoding(max_seq_len, emb_dim, pos_dropout)
         self.layers = nn.ModuleList([DecoderLayer(emb_dim, n_head, dropout_attn, dropout_multi,d_ff, dropout_ff, layernorm_epsilon) for _ in range(n_layers)])
-        self.total_linear = nn.Linear()
-        self.softmax = nn.Softmax()
+        # self.total_linear = nn.Linear()
+        # self.softmax = nn.Softmax(dim = -1)
 
-    def forward(self, dec_input, enc_input, enc_output): # memory = seq of output of the last layer of encoder
+    def forward(self, dec_input, enc_input, enc_output): # memory = seq of output of the last layer of encoder!
         emb_dec = self.embedding_layer(dec_input)
         posemb_dec = self.position_layer(emb_dec)
         dec_output = posemb_dec
@@ -105,13 +105,13 @@ class Decoder(nn.Module):
             dec_self_attn_prob.append(self_attn)
             enc_dec_attn_prob.append(enc_dec_attn)
 
-        lin_out = self.total_inear(dec_output)
-        dec_output_prob = self.softmax(lin_out)
-        return dec_output_prob, dec_self_attn_prob, enc_dec_attn_prob
+        # lin_out = self.total_inear(dec_output)
+        # dec_output_prob = self.softmax(lin_out)
+        return dec_output, dec_self_attn_prob, enc_dec_attn_prob
 
 class Transformer(nn.Module): # encoder와 decoder의 emb_dim등은 다르려나?
-    def __init__(self, voca_size, emb_dim, max_seq_len, pos_dropout,dropout_attn,
-                 dropout_multi, d_ff, dropout_ff, n_layers, n_head, pad_idx, layernorm_epsilon):
+    def __init__(self, voca_size, emb_dim=512, max_seq_len=400, pos_dropout = 0.1,dropout_attn=0.1,
+                 dropout_multi = 0.1, d_ff= 2048, dropout_ff= 0.1, n_layers = 8, n_head = 8, pad_idx = 0, layernorm_epsilon = 1e-12):
         super().__init__()
         self.encoder = Encoder(voca_size, emb_dim, max_seq_len, pos_dropout,dropout_attn,
                                dropout_multi, d_ff, dropout_ff, n_layers, n_head, pad_idx, layernorm_epsilon)
