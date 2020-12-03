@@ -28,7 +28,7 @@ bptt = 35 # 이게 뭐야?
 def get_batch(source, i):
     seq_len = min(bptt, len(source)-1-i)
     data = source[i:i+seq_len]
-    target = source[i+1,i+1+seq_len].view(-1)
+    target = source[i+1:i+1+seq_len].view(-1)
     return data, target
 
 
@@ -38,7 +38,7 @@ n_hid = 200 # encoder의 positional ff층 차원수
 n_layers = 2 # transformer encoder decoder layer 개수
 n_head = 8 # multi-head attention head 개수
 d_model = 512
-# warmup_steps = 200
+# warmup_steps = 4000 # 논문 설정
 # num_steps = 1000
 epochs = 3
 
