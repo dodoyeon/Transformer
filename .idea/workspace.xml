@@ -2,17 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a8884216-75aa-480e-9913-777a171ce8d4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/process_Samlynn.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train_test_Samlynn.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train_test_naver.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/EQT.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/EQT.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Tokenize_Samlynn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.data/Samlynn_data/english.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/Samlynn_data/english.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.data/Samlynn_data/french.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/Samlynn_data/french.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.data/naver_movie/ratings_test.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/naver_movie/ratings_test.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.data/naver_movie/ratings_train.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/naver_movie/ratings_train.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.data/wikitext-2/wikitext-2-v1.zip" beforeDir="false" afterPath="$PROJECT_DIR$/data/wikitext-2/wikitext-2-v1.zip" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.data/wikitext-2/wikitext-2/wiki.test.tokens" beforeDir="false" afterPath="$PROJECT_DIR$/data/wikitext-2/wikitext-2/wiki.test.tokens" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.data/wikitext-2/wikitext-2/wiki.train.tokens" beforeDir="false" afterPath="$PROJECT_DIR$/data/wikitext-2/wikitext-2/wiki.train.tokens" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.data/wikitext-2/wikitext-2/wiki.valid.tokens" beforeDir="false" afterPath="$PROJECT_DIR$/data/wikitext-2/wikitext-2/wiki.valid.tokens" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Attention.py" beforeDir="false" afterPath="$PROJECT_DIR$/Attention.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transformer-model-architecture.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/transformer.py" beforeDir="false" afterPath="$PROJECT_DIR$/transformer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/process_Samlynn.py" beforeDir="false" afterPath="$PROJECT_DIR$/process_Samlynn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_test_Samlynn.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_test_Samlynn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-crawler" beforeDir="false" afterPath="$PROJECT_DIR$/web-crawler" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web-crawler/kowiki.py" beforeDir="false" afterPath="$PROJECT_DIR$/web-crawler/kowiki.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -44,7 +46,7 @@
     <property name="last_opened_file_path" value="$USER_HOME$/Downloads/Transformer-master/Transformer-master" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.train_test_naver">
+  <component name="RunManager" selected="Python.train_test_Samlynn">
     <configuration name="kowiki" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="EQT" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -79,6 +81,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="train_test_Samlynn" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="EQT" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train_test_Samlynn.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -131,6 +154,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.train_test_Samlynn" />
         <item itemvalue="Python.train_test_naver" />
         <item itemvalue="Python.kowiki" />
         <item itemvalue="Python.train" />
@@ -168,22 +192,26 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="691" y="238" key="FileChooserDialogImpl/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1606900218957" />
-    <state width="1899" height="255" key="GridCell.Tab.0.bottom" timestamp="1606893814460">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1899" height="255" key="GridCell.Tab.0.bottom" timestamp="1607090824021">
+      <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state width="1899" height="255" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1606893814460" />
-    <state width="1899" height="255" key="GridCell.Tab.0.center" timestamp="1606893814460">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1899" height="255" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1607090824021" />
+    <state width="1899" height="255" key="GridCell.Tab.0.center" timestamp="1607090824021">
+      <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state width="1899" height="255" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1606893814460" />
-    <state width="1899" height="255" key="GridCell.Tab.0.left" timestamp="1606893814460">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1899" height="255" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1607090824021" />
+    <state width="1899" height="255" key="GridCell.Tab.0.left" timestamp="1607090824021">
+      <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state width="1899" height="255" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1606893814460" />
-    <state width="1899" height="255" key="GridCell.Tab.0.right" timestamp="1606893814460">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1899" height="255" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1607090824021" />
+    <state width="1899" height="255" key="GridCell.Tab.0.right" timestamp="1607090824021">
+      <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state width="1899" height="255" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1606893814460" />
+    <state width="1899" height="255" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1607090824021" />
     <state x="461" y="162" key="SettingsEditor" timestamp="1606729969458">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
