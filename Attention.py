@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
-import torch.functional as F
+import torch.nn.functional as F
+
+import math
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -13,16 +15,18 @@ class Embedding(nn.Module):
         return self.embedding(x)
 
 class PositionalEncoding(nn.Module):
-    def __init__(self,  emb_dim, max_seq_len, pos_dropout):
+    def __init__(self, emb_dim, max_seq_len, pos_dropout):
         super().__init__()
-        self.pe = np.zeros([max_seq_len,emb_dim])
+        pe = torch.zeros(max_seq_len, emb_dim)
         for pos in range(max_seq_len):
             for i in range(0, emb_dim, 2):
-                self.pe[pos, i] = np.sin(pos/(10000**(i/emb_dim)))
-                self.pe[pos, i+1] = np.cos(pos/(10000**(i/emb_dim)))
+                pe[pos, i] = math.sin(pos/(10000**((2*i)/emb_dim)))
+                pe[pos, i+1] = math.cos(pos/(10000**((2*(i+1))/emb_dim)))
+        pe = pe.unsqueeze(0)
+        self.register_buffer('pe', pe)
         self.dropout = nn.Dropout(pos_dropout) # dropout을 해야하는가 ->네
     def forward(self, x):
-        pos_out = x + self.pe[:,:x.size(1)]
+        pos_out = x + self.pe[:, :x.size(1)]
         return self.dropout(pos_out)
 
 # max_seq_len = 400
@@ -50,11 +54,12 @@ class ScaledDotProductAttention(nn.Module):
         self.softmax = nn.Softmax(dim=-1) # 왜 dim이 -1인지 보기
 
     def forward(self,Q,K,V, mask = None):
-        score_qk = torch.matmul(Q,K.transpose()) / self.sqrt_dk
+        score_qk = torch.matmul(Q,K.transpose(-2, -1)) / self.sqrt_dk
         if mask is not None:
+            mask = mask.unsqueeze(1)
             attn = score_qk.masked_fill(mask, -1e9)
-        attn_prob = self.dropout(self.sotfmax(attn, dim=-1)) # softmax에 dim=-1 왜?
-        context = nn.matmul(attn_prob,V)
+        attn_prob = self.dropout(self.softmax(attn)) # softmax에 dim=-1 왜?
+        context = torch.matmul(attn_prob, V)
         return context, attn_prob
 
 class MultiHeadAttention(nn.Module):
