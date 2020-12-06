@@ -33,6 +33,7 @@ def create_attn_decoder_mask(seq):
     Attention Decoder MASK
     Target의 경우 그 다음 단어를 못보게 가린다
     """
-    decoder_mask = torch.one_like(seq).unsqueeze(-1).expand( seq.size(0), seq.size(1), seq.size(1))
-    decoder_mask = decoder_mask.triu(torch.ones(diagonal=1)) # torch.triu: nxn 행렬에서 위쪽 삼각을 리턴
+    decoder_mask = torch.ones_like(seq).unsqueeze(-1).expand( seq.size(0), seq.size(1), seq.size(1))
+    decoder_mask = decoder_mask.triu(diagonal=1) # torch.triu: nxn 행렬에서 위쪽 삼각을 리턴
+    # decoder_mask = torch.triu(decoder_mask, diagonal=1)
     return decoder_mask

@@ -5,7 +5,7 @@ import torch.nn as nn
 from transformer import Transformer
 from process_Samlynn import batch_size_fn, read_data, create_dataset, create_fields
 
-def train_model(model, train_data, epochs, criterion, optimizer):
+def train_model(model, train_data, epochs, criterion, optimizer, train_len, src_pad, trg_pad):
     print("training model...")
     model.train()
     start = time.time()
@@ -16,7 +16,7 @@ def train_model(model, train_data, epochs, criterion, optimizer):
             src = batch.src.transpose(0,1)
             trg = batch.trg.transpose(0,1)
             trg_input = trg[:, :-1]
-            preds = model(src, trg_input)
+            preds, _, _, _ = model(src, trg_input)
             ys = trg[:, 1:].contiguous().view(-1)
             optimizer.zero_grad()
             loss = criterion(preds.view(-1, preds.size(-1)), ys)
@@ -25,7 +25,7 @@ def train_model(model, train_data, epochs, criterion, optimizer):
             total_loss += loss.item()
 
             if (i + 1) % 100 == 0:
-                p = int(100 * (i + 1) / 100)
+                p = int(100 * (i + 1) / train_len)
                 avg_loss = total_loss / 100
                 print("   %dm: epoch %d [%s%s]  %d%%  loss = %.3f" % \
                       ((time.time() - start) // 60, epoch + 1, "".join('#' * (p // 5)), "".join(' ' * (20 - (p // 5))),
@@ -33,27 +33,30 @@ def train_model(model, train_data, epochs, criterion, optimizer):
                 total_loss = 0
         print("%dm: epoch %d [%s%s]  %d%%  loss = %.3f\nepoch %d complete, loss = %.03f" % ((time.time() - start) // 60, epoch + 1, "".join('#' * (100 // 5)), "".join(' ' * (20 - (100 // 5))), 100, avg_loss, epoch + 1, avg_loss))
 
+def test_model():
+
 def main():
     # Set training device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Model hyper-parameters
     epochs = 2
-    emb_size = 200  # emb_dim
+    emb_size = 512  # emb_dim
     n_hid = 200  # encoder의 positional ff층 차원수
     n_layers = 2  # transformer encoder decoder layer 개수
     n_head = 8  # multi-head attention head 개수
     d_model = 512
-    max_seq_len = 400
+    max_seq_len = 200
     batch_size = 1500
+    lr = 0.0001
 
     # Loading Data on variables
-    src_data = os.path.abspath("data\\Samlynn_data\\english.txt")
-    trg_data = os.path.abspath("data\\Samlynn_data\\french.txt")
-    read_data(src_data, trg_data)
+    src_data = os.path.abspath("data/Samlynn_data/english.txt")
+    trg_data = os.path.abspath("data/Samlynn_data/french.txt")
+    src_data, trg_data = read_data(src_data, trg_data)
     SRC, TRG = create_fields(src_lang='en', trg_lang='fr')
 
-    train_data = create_dataset(src_data, trg_data, batch_size, device, max_seq_len, SRC,
+    train_data, train_len, src_pad, trg_pad = create_dataset(src_data, trg_data, batch_size, device, max_seq_len, SRC,
                                 TRG)  # = train_iter(in Process.py)
     src_n_tokens = len(SRC.vocab)
     trg_n_tokens = len(TRG.vocab)
@@ -81,7 +84,7 @@ def main():
     #     pickle.dump(TRG, open('weights/TRG.pkl', 'wb'))
 
     # Train model
-    train_model(model, train_data, epochs, criterion, optimizer)
+    train_model(model, train_data, epochs, criterion, optimizer, train_len, src_pad, trg_pad)
 
 if __name__ == '__main__':
     main()

@@ -60,6 +60,7 @@ def read_data(src_data, trg_data):
             print(e)
             quit()
 
+    return src_data, trg_data
 
 def create_fields(src_lang, trg_lang):
     spacy_langs = ['en', 'fr', 'de', 'es', 'pt', 'it', 'nl']
@@ -88,7 +89,7 @@ def create_fields(src_lang, trg_lang):
     return (SRC, TRG)
 
 
-def create_dataset(src_data,trg_data,batchsize,device, max_strlen, SRC, TRG):
+def create_dataset(src_data,trg_data,batchsize, device, max_strlen, SRC, TRG):
     print("creating dataset and iterator... ")
 
     raw_data = {'src': [line for line in src_data], 'trg': [line for line in trg_data]}
@@ -127,7 +128,7 @@ def create_dataset(src_data,trg_data,batchsize,device, max_strlen, SRC, TRG):
 
     train_len = get_len(train_iter)
 
-    return train_iter, src_pad, trg_pad, train_len
+    return train_iter, train_len, src_pad, trg_pad
 
 
 def get_len(train):
