@@ -95,7 +95,7 @@ class Decoder(nn.Module):
         self_pad_mask = create_padding_mask(dec_input, dec_input, self.pad_idx)
         self_attn_mask = create_attn_decoder_mask(dec_input)
         self_mask = torch.gt((self_pad_mask+self_attn_mask), 0) # 첫번째 인풋에 broadcastable한 두번째 아규먼트사용, input>2nd이면 true
-        enc_dec_pad_mask = create_padding_mask(dec_input, enc_input, self.pad_idx)
+        enc_dec_pad_mask = create_padding_mask(dec_input, enc_input, self.pad_idx) # ERROR POINT
 
         dec_self_attn_prob = []
         enc_dec_attn_prob = []

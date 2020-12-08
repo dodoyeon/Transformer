@@ -1,14 +1,16 @@
-import os
+# import os
 import time
 import torch
 import torch.nn as nn
 from transformer import Transformer
-from process_Samlynn import batch_size_fn, read_data, create_dataset, create_fields
+from Dataset import *
+# from process_Samlynn import batch_size_fn, read_data, create_dataset, create_fields
 
 def train_model(model, train_data, epochs, criterion, optimizer, train_len, src_pad, trg_pad):
     print("training model...")
     model.train()
     start = time.time()
+    # temp = start
 
     for epoch in range(epochs):
         total_loss = 0
@@ -22,18 +24,28 @@ def train_model(model, train_data, epochs, criterion, optimizer, train_len, src_
             loss = criterion(preds.view(-1, preds.size(-1)), ys)
             loss.backward()
             optimizer.step()
-            total_loss += loss.item()
+            total_loss += loss.item() # total_loss += loss.data[0]
 
             if (i + 1) % 100 == 0:
                 p = int(100 * (i + 1) / train_len)
                 avg_loss = total_loss / 100
-                print("   %dm: epoch %d [%s%s]  %d%%  loss = %.3f" % \
-                      ((time.time() - start) // 60, epoch + 1, "".join('#' * (p // 5)), "".join(' ' * (20 - (p // 5))),
+                print("time= %dm: epoch %d iter %d [%s%s]  %d%%  loss = %.3f" %
+                      ((time.time() - start) // 60, epoch + 1, i + 1, "".join('#' * (p // 5)), "".join(' ' * (20 - (p // 5))),
                        p, avg_loss), end='\r')
                 total_loss = 0
+                # temp = time.time()
         print("%dm: epoch %d [%s%s]  %d%%  loss = %.3f\nepoch %d complete, loss = %.03f" % ((time.time() - start) // 60, epoch + 1, "".join('#' * (100 // 5)), "".join(' ' * (20 - (100 // 5))), 100, avg_loss, epoch + 1, avg_loss))
 
-def test_model():
+# def test_model(model, test_data, epochs, criterion, optimizer, test_len, src_pad, trg_pad):
+#     print("training model...")
+#     model.eval()
+#     start = time.time()
+#     total_loss = 0
+#     with torch.no_grad():
+#         for
+#             pred = model(test_data)
+#             loss = criterion(pred, ys)
+#             total_loss += loss.item()
 
 def main():
     # Set training device
@@ -50,16 +62,16 @@ def main():
     batch_size = 1500
     lr = 0.0001
 
-    # Loading Data on variables
-    src_data = os.path.abspath("data/Samlynn_data/english.txt")
-    trg_data = os.path.abspath("data/Samlynn_data/french.txt")
-    src_data, trg_data = read_data(src_data, trg_data)
-    SRC, TRG = create_fields(src_lang='en', trg_lang='fr')
-
-    train_data, train_len, src_pad, trg_pad = create_dataset(src_data, trg_data, batch_size, device, max_seq_len, SRC,
-                                TRG)  # = train_iter(in Process.py)
-    src_n_tokens = len(SRC.vocab)
-    trg_n_tokens = len(TRG.vocab)
+    # # Loading Data on variables
+    # src_data = os.path.abspath("data/Samlynn_data/english.txt")
+    # trg_data = os.path.abspath("data/Samlynn_data/french.txt")
+    # src_data, trg_data = read_data(src_data, trg_data)
+    # SRC, TRG = create_fields(src_lang='en', trg_lang='fr')
+    #
+    # train_data, train_len, src_pad, trg_pad = create_dataset(src_data, trg_data, batch_size, device, max_seq_len, SRC,
+    #                             TRG)  # = train_iter(in Process.py)
+    # src_n_tokens = len(SRC.vocab)
+    # trg_n_tokens = len(TRG.vocab)
 
     # Define model
     model = Transformer(src_voca_size=src_n_tokens, trg_voca_size=trg_n_tokens, emb_dim=emb_size, d_ff=n_hid,
