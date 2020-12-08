@@ -18,7 +18,7 @@ def train(model, train_iterator, optimizer, criterion, epochs):
     total_loss = 0.
     start_time = time.time()
     train_len = len(train_iterator)
-    # n_tokens = len(TEXT.vocab.stoi)
+
     for epoch in range(epochs):
         total_loss = 0
         for i, batch in enumerate(train_iterator):
@@ -35,18 +35,18 @@ def train(model, train_iterator, optimizer, criterion, epochs):
             optimizer.step()
 
             total_loss += loss.item()
-            if (i + 1) % 100 == 0:
-                p = int(100 * (i + 1) / train_len)
-                avg_loss = total_loss / 100
-                print("time= %dm: epoch %d iter %d [%s%s]  %d%%  loss = %.3f" %
-                      ((time.time() - start_time) // 60, epoch + 1, i + 1, "".join('#' * (p // 5)),
-                       "".join(' ' * (20 - (p // 5))),
-                       p, avg_loss), end='\r')
-                total_loss = 0
-                # temp = time.time()
-    print("%dm: epoch %d [%s%s]  %d%%  loss = %.3f\nepoch %d complete, loss = %.03f" % (
-    (time.time() - start_time) // 60, epoch + 1, "".join('#' * (100 // 5)), "".join(' ' * (20 - (100 // 5))), 100, avg_loss,
-    epoch + 1, avg_loss))
+
+            p = int(100 * (i + 1) / train_len)
+            avg_loss = total_loss / batch_size
+            print("time= %dm: epoch %d iter %d [%s%s]  %d%%  loss = %.3f" %
+                ((time.time() - start_time) // 60, epoch + 1, i + 1, "".join('#' * (p // 5)),
+                    "".join(' ' * (20 - (p // 5))),
+                    p, avg_loss), end='\r')
+            total_loss = 0
+
+    # print("%dm: epoch %d [%s%s]  %d%%  loss = %.3f\nepoch %d complete, loss = %.03f" % (
+    # (time.time() - start_time) // 60, epoch + 1, "".join('#' * (100 // 5)), "".join(' ' * (20 - (100 // 5))), 100, avg_loss,
+    # epoch + 1, avg_loss))
 
 
 def evaluate(model, test_iterator, criterion):
@@ -77,7 +77,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     n_src_tokens = len(SRC.vocab.stoi)  # vocabulary dictionary size
     n_trg_tokens = len(TRG.vocab.stoi)
-    epochs = 2
+    epochs = 6
     emb_size = 512  # emb_dim
     n_hid = 200  # encoder의 positional ff층 차원수
     n_layers = 2  # transformer encoder decoder layer 개수
