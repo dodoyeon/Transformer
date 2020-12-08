@@ -19,7 +19,15 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8884216-75aa-480e-9913-777a171ce8d4" name="Default Changelist" comment="" />
+    <list default="true" id="a8884216-75aa-480e-9913-777a171ce8d4" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/test_Samlynn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Attention.py" beforeDir="false" afterPath="$PROJECT_DIR$/Attention.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mask.py" beforeDir="false" afterPath="$PROJECT_DIR$/mask.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/process_Samlynn.py" beforeDir="false" afterPath="$PROJECT_DIR$/process_Samlynn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_test_Samlynn.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_Samlynn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transformer.py" beforeDir="false" afterPath="$PROJECT_DIR$/transformer.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -49,8 +57,13 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
+<<<<<<< HEAD
   <component name="RunManager" selected="Python.train">
     <configuration name="Dataset" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+=======
+  <component name="RunManager" selected="Python.train_Samlynn">
+    <configuration name="kowiki" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
       <module name="EQT" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -58,11 +71,19 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
+<<<<<<< HEAD
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Dataset.py" />
+=======
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/web-crawler" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/web-crawler/kowiki.py" />
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -71,7 +92,11 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+<<<<<<< HEAD
     <configuration name="kowiki" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+=======
+    <configuration name="train" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
       <module name="EQT" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -79,11 +104,19 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
+<<<<<<< HEAD
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/web-crawler" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/web-crawler/kowiki.py" />
+=======
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train.py" />
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -92,40 +125,32 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+<<<<<<< HEAD
     <configuration name="train" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+=======
+    <configuration name="train_Samlynn" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
       <module name="EQT" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
+<<<<<<< HEAD
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="train_Samlynn" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="EQT" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
+=======
       <option name="SDK_HOME" value="$PROJECT_DIR$/../.conda/envs/qa_system/bin/python" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train_Samlynn.py" />
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -134,7 +159,45 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+<<<<<<< HEAD
+    <configuration name="train_Samlynn" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+=======
     <configuration name="train_test_naver" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
+      <module name="EQT" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+<<<<<<< HEAD
+      <option name="SDK_HOME" value="$PROJECT_DIR$/../.conda/envs/qa_system/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train_Samlynn.py" />
+=======
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train_test_naver.py" />
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+<<<<<<< HEAD
+    <configuration name="train_test_naver" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+=======
+    <configuration name="transformer" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
       <module name="EQT" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -159,6 +222,7 @@
       <item itemvalue="Python.kowiki" />
       <item itemvalue="Python.train" />
       <item itemvalue="Python.train_test_naver" />
+<<<<<<< HEAD
       <item itemvalue="Python.train_Samlynn" />
       <item itemvalue="Python.Dataset" />
     </list>
@@ -169,6 +233,18 @@
         <item itemvalue="Python.train_Samlynn" />
         <item itemvalue="Python.train_test_naver" />
         <item itemvalue="Python.kowiki" />
+=======
+      <item itemvalue="Python.transformer" />
+      <item itemvalue="Python.train_Samlynn" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.train_Samlynn" />
+        <item itemvalue="Python.train_test_naver" />
+        <item itemvalue="Python.kowiki" />
+        <item itemvalue="Python.train" />
+        <item itemvalue="Python.transformer" />
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
       </list>
     </recent_temporary>
   </component>
@@ -195,21 +271,32 @@
         </entry>
       </map>
     </option>
+<<<<<<< HEAD
     <option name="oldMeFiltersMigrated" value="true" />
+=======
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
   </component>
   <component name="WindowStateProjectService">
     <state x="418" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1607091162711">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
     <state x="418" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1053@0.27.1920.1053" timestamp="1607091162711" />
+<<<<<<< HEAD
     <state x="718" y="297" key="#xdebugger.evaluate" timestamp="1607361868814">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
     <state x="718" y="297" key="#xdebugger.evaluate/0.27.1920.1053@0.27.1920.1053" timestamp="1607361868814" />
+=======
+    <state x="718" y="297" key="#xdebugger.evaluate" timestamp="1607097329492">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state x="718" y="297" key="#xdebugger.evaluate/0.27.1920.1053@0.27.1920.1053" timestamp="1607097329492" />
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
     <state x="691" y="238" key="FileChooserDialogImpl" timestamp="1606900218957">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="691" y="238" key="FileChooserDialogImpl/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1606900218957" />
+<<<<<<< HEAD
     <state width="1896" height="399" key="GridCell.Tab.0.bottom" timestamp="1607404911019">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
@@ -286,5 +373,51 @@
         </breakpoint>
       </default-breakpoints>
     </breakpoint-manager>
+=======
+    <state width="1896" height="390" key="GridCell.Tab.0.bottom" timestamp="1607108181636">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1899" height="255" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1606893814460" />
+    <state width="1899" height="255" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1607090824021" />
+    <state width="1896" height="390" key="GridCell.Tab.0.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1607108181636" />
+    <state width="1896" height="390" key="GridCell.Tab.0.center" timestamp="1607108181635">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1899" height="255" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1606893814460" />
+    <state width="1899" height="255" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1607090824021" />
+    <state width="1896" height="390" key="GridCell.Tab.0.center/0.27.1920.1053@0.27.1920.1053" timestamp="1607108181635" />
+    <state width="1896" height="390" key="GridCell.Tab.0.left" timestamp="1607108181635">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1899" height="255" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1606893814460" />
+    <state width="1899" height="255" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1607090824021" />
+    <state width="1896" height="390" key="GridCell.Tab.0.left/0.27.1920.1053@0.27.1920.1053" timestamp="1607108181635" />
+    <state width="1896" height="390" key="GridCell.Tab.0.right" timestamp="1607108181636">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1899" height="255" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1606893814460" />
+    <state width="1899" height="255" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1607090824021" />
+    <state width="1896" height="390" key="GridCell.Tab.0.right/0.27.1920.1053@0.27.1920.1053" timestamp="1607108181636" />
+    <state width="1896" height="390" key="GridCell.Tab.1.bottom" timestamp="1607108181560">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1896" height="390" key="GridCell.Tab.1.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1607108181560" />
+    <state width="1896" height="390" key="GridCell.Tab.1.center" timestamp="1607108181559">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1896" height="390" key="GridCell.Tab.1.center/0.27.1920.1053@0.27.1920.1053" timestamp="1607108181559" />
+    <state width="1896" height="390" key="GridCell.Tab.1.left" timestamp="1607108181559">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1896" height="390" key="GridCell.Tab.1.left/0.27.1920.1053@0.27.1920.1053" timestamp="1607108181559" />
+    <state width="1896" height="390" key="GridCell.Tab.1.right" timestamp="1607108181559">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1896" height="390" key="GridCell.Tab.1.right/0.27.1920.1053@0.27.1920.1053" timestamp="1607108181559" />
+    <state x="461" y="162" key="SettingsEditor" timestamp="1606729969458">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="461" y="162" key="SettingsEditor/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1606729969458" />
+>>>>>>> 21d308b3c97a14ff26fea12bf0264dfbd336a3f4
   </component>
 </project>
