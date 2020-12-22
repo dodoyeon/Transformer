@@ -57,7 +57,9 @@ class ScaledDotProductAttention(nn.Module):
         score_qk = torch.matmul(Q,K.transpose(-2, -1)) / self.sqrt_dk
         if mask is not None:
             mask = mask.unsqueeze(1)
-            attn = score_qk.masked_fill(mask, -1e9)
+            attn = score_qk.masked_fill(mask, -1e9) # masked_fill:
+        else:
+            attn = score_qk
         attn_prob = self.dropout(self.softmax(attn)) # softmax에 dim=-1 왜?
         context = torch.matmul(attn_prob, V)
         return context, attn_prob
@@ -85,11 +87,11 @@ class MultiHeadAttention(nn.Module):
         d_k = self.d_k
         d_v = self.d_v
 
-        q = self.linear_q(Q).view(batch_size, -1, n_head, d_k)
+        q = self.linear_q(Q).view(batch_size, -1, n_head, d_k) # (128, 27, 8, 64)
         k = self.linear_k(K).view(batch_size, -1, n_head, d_k)
         v = self.linear_v(V).view(batch_size, -1, n_head, d_v)
 
-        q = q.transpose(1, 2) # 왜지ㅠㅜ 사이즈맞추려구..?
+        q = q.transpose(1, 2) # 왜지ㅠㅜ 사이즈맞추려구..?->(128, 8, 27, 64)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
 
@@ -108,7 +110,7 @@ class PositionalFeedForward(nn.Module):
 
     def forward(self, x):
         residual = x
-        x = F.relu(self.weight_1(x))
+        x = F.relu(self.weight_1(x)) # nn.ReLU?
         x = self.weight_2(x)
         x = self.dropout(x)
         return x + residual
