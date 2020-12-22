@@ -100,8 +100,8 @@ def evaluate(model, test_iterator, criterion, max_seq_len):
             
             # for j in range(src.size(0)):
             for k in range(max_seq_len):
-                pred, _, _, _ = model(src, test_input) # consider get model's mask function out
-            test_input.cat(pred, dim = 0)
+                pred, _, _, _ = model(src, test_input.to(device).long()) # consider get model's mask function out
+                test_input = pred
                 
             loss = criterion(pred.view(-1, pred.size(-1)), ys)
             total_loss += loss.item()
@@ -141,8 +141,10 @@ def main():
     # for var_name in optimizer.state_dict():
     #     print(var_name, "\t", optimizer.state_dict()[var_name])
 
-    # print("start training..")
-    # train(model, train_iterator, optimizer, criterion, epochs)
+    # train
+    print("start training..")
+    train(model, train_iterator, optimizer, criterion, epochs)
+    # test
     print("start testing..")
     evaluate(model, test_iterator, criterion, max_seq_len)
 
