@@ -25,6 +25,7 @@ def train(model, train_iterator, optimizer, criterion, epochs):
         for i, batch in enumerate(train_iterator):
             src = batch.src.transpose(0,1)
             trg = batch.trg.transpose(0,1)
+
             trg_input = trg.clone().detach()
             trg_input[trg_input == 3] = 1 # if trg_input.data = 3 ->convert 1(<pad>)
             trg_input = trg_input[:,:-1]

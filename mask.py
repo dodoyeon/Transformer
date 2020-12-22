@@ -24,6 +24,7 @@ def create_padding_mask(seq_q, seq_k, pad_idx):  # pad_idx = 0
     batch_size = seq_q.size(0)
     len_q = seq_q.size(1)
     len_k = seq_k.size(1)
+
     pad_attn_mask = seq_k.data.eq(pad_idx) # if same as pad_idx -> True
     pad_attn_mask = pad_attn_mask.unsqueeze(1) # increase dim
     pad_attn_mask = pad_attn_mask.expand(batch_size, len_q, len_k) # expand()
@@ -36,5 +37,6 @@ def create_attn_decoder_mask(seq):
     """
     decoder_mask = torch.ones_like(seq).unsqueeze(-1).expand(seq.size(0), seq.size(1), seq.size(1)) # ones_like: filled with 1 with same size of input
     decoder_mask = decoder_mask.triu(diagonal=1) # torch.triu: nxn 행렬에서 위쪽 삼각을 리턴(2D) down is all 0/ diagonal= return amount(1: not contain the diag-self)
+
     # decoder_mask = torch.triu(decoder_mask, diagonal=1)
     return decoder_mask
