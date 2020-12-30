@@ -25,11 +25,13 @@ class PositionalEncoding(nn.Module):
         pe = pe.unsqueeze(0)
         self.register_buffer('pe', pe)
         self.dropout = nn.Dropout(pos_dropout) # dropout을 해야하는가 ->네
-    def forward(self, x):
-        pos_out = x + self.pe[:, :x.size(1)]
+    def forward(self, x): # in evel, x = emb_dec(64,9,512)->b=64, 9?,emb=512
+        pos = self.pe[:, :x.size(1)]  # self.pe(1,200,512)
+        pos_out = x + pos
         return self.dropout(pos_out)
 
-# max_seq_len = 400
+# <Positional encoding Graph>
+# max_seq_len = 200
 # embed_dim = 512 # 논문에서 d_model
 #
 # pe = np.zeros([max_seq_len, embed_dim])

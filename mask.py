@@ -13,7 +13,7 @@ import torch
 
 def create_padding_mask(seq_q, seq_k, pad_idx):  # pad_idx = 0
     """
-    seq 형태를  (256, 33) -> (256, 1, 31) 이렇게 변경합니다.
+    seq 형태를  (256, 33) -> (256, 1, 33) 이렇게 변경합니다.
 
     아래와 같이 padding index부분을 False로 변경합니다. (리턴 tensor)
     아래의 vector 하나당 sentence라고 보면 되고, True로 되어 있는건 단어가 있다는 뜻.

@@ -2,20 +2,25 @@ import time
 import math
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+import torchtext.data.metrics
 from Dataset import *
 from mask import create_padding_mask, create_attn_decoder_mask
 from transformer import Transformer
 
+# 논문에 나와있는 learning rate 식 구현-> 어떻게 쓸지는 좀 더 알아보자
 # warmup_steps = 4000 # 논문 설정
 # num_steps = 1000
-
-# lrs = [] # 논문에 나와있는 learning rate 식 구현-> 어떻게 쓸지는 좀 더 알아보자
+# lrs = [] 
 # for step in range(num_steps): #
 #     lr = (d_model**-0.5) * min((step**-0.5), step*(warmup_steps**-1.5))
 #     lrs.append(lr)
 
 def train(model, train_iterator, optimizer, criterion, epochs):
     model.train()
+    for p in model.parameters():
+        if p.dim() > 1: # why?
+            nn.init.xavier_uniform_(p)
     pad_idx = 0
     start_time = time.time()
     train_len = len(train_iterator) # 227
@@ -37,27 +42,21 @@ def train(model, train_iterator, optimizer, criterion, epochs):
             #             trg_k = torch.cat((trg_row[:k],trg_row[k+1:]))
             #             trg_input.cat(trg_k, dim=1)
 
-            ys = trg[:,1:].contiguous().view(-1)
+            ys = trg[:,1:].contiguous().view(-1) 
+            # continous(): 
+            # view():torch, same data but different shape/ -1:make 1 size row
 
+            # Masking
             enc_pad_mask = create_padding_mask(src, src, pad_idx).to(device)
-
             self_pad_mask = create_padding_mask(trg_input, trg_input, pad_idx).to(device)
             self_attn_mask = create_attn_decoder_mask(trg_input).to(device)
-            self_dec_mask = torch.gt((self_pad_mask + self_attn_mask),0).to(device)
+            self_dec_mask = torch.gt((self_pad_mask + self_attn_mask),0).to(device) # 첫번째 인풋에 broadcastable한 두번째 아규먼트사용, input>2nd이면 true
             enc_dec_pad_mask = create_padding_mask(trg_input, src, pad_idx).to(device)
-            
-            # enc_pad_mask = create_padding_mask(enc_input, enc_input, self.pad_idx)
-            # 
-            # self_pad_mask = create_padding_mask(dec_input, dec_input, self.pad_idx)
-            # self_attn_mask = create_attn_decoder_mask(dec_input)
-            # self_dec_mask = torch.gt((self_pad_mask + self_attn_mask), 0)  # 첫번째 인풋에 broadcastable한 두번째 아규먼트사용, input>2nd이면 true
-            # enc_dec_pad_mask = create_padding_mask(dec_input, enc_input, self.pad_idx)  # ERROR POINT
 
             optimizer.zero_grad()
             pred, _, _, _ = model(src, trg_input, enc_pad_mask, self_dec_mask, enc_dec_pad_mask)
             loss = criterion(pred.view(-1, pred.size(-1)), ys)
             loss.backward()
-            # torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5) -> RNN
             optimizer.step()
 
             total_loss += loss.item()
@@ -72,7 +71,7 @@ def train(model, train_iterator, optimizer, criterion, epochs):
             total_loss = 0
 
         torch.save({'epoch': epoch,
-                    'model state_dist': model.state_dict(),# dict!!!
+                    'model state_dict': model.state_dict(),
                     'optimizer state_dict': optimizer.state_dict(),
                     'loss': avg_loss}, 'weight/train_weight.pth') # new file'train_weight.pth' if not exists
 
@@ -80,39 +79,75 @@ def train(model, train_iterator, optimizer, criterion, epochs):
         (time.time() - start_time) // 60, epoch + 1, "".join('#' * (100 // 5)), "".join(' ' * (20 - (100 // 5))), 100, avg_loss,
         epoch + 1, avg_loss))
 
+###얘도 pytorch_chatbot 참조###->index2word (no need)
+# def decoding_from_result(enc_input, pred, dec_output=None, tokenizer=None): # pred dec_output difference?
+#     list_input_ids = enc_input.tolist() #tolist:np,array를 list로
+#     list_pred_ids = pred.max(dim=-1)[1].tolist()
+#     input_tok = tokenizer.decode_token_ids(list_input_ids)
+#     pred_tok = tokenozer.decode_token_ids(list_pred_ids)
+#     
+#     print("input:",input_tok)
+#     print("pred: ", pred_tok)
+#     
+#     if dec_output is not None:
+#         real_tok = tokenizer.decode_token_ids(dec_output.tolist())
+#         print("real:", real_tok)
+#         prunt("")
+#         return None
+#     
+#     else: # 핑퐁의 띄어쓰기 교정기 적용?
+#         pred_str = ''.join([token.split('/')[0] for token in pred_tok[0][:-1]])
+#         pred_str = spacer.space(pred_str)
+#         print("pred_string:", pred_str)
+#         print("")
+#         return pred_str
+    
 
-def evaluate(model, test_iterator, criterion, max_seq_len):
+def evaluate(model, test_iterator, max_seq_len):
     checkpoint = torch.load('weight/train_weight.pth')
-    model.load_state_dict(checkpoint['model state_dist']) # dict!!
+    model.load_state_dict(checkpoint['model state_dict'])
     # optimizer.load_state_dict(checkpoint['optimizer state_dict'])#->optimizer aren't used in test?
 
     model.eval()
     total_loss = 0
-    test_len = len(test_iterator) # test_len=8(-> the number of batch?/not change)
-    start_time = time.time()
+    test_len = len(test_iterator) # test_len=8(-> the number of batch?/not change) ->?? but it seems 32(batch_size changed)
+    # start_time = time.time()
     with torch.no_grad():
         for i, batch in enumerate(test_iterator):
             src = batch.src.transpose(0,1) # (128,12) -> batch_size = 128
             trg = batch.trg.transpose(0,1) # (128,11)
-
-            ys = trg[:, 1:].contiguous().view(-1) # size:(128x10=1280)
-            test_input = torch.ones(src.size(0), max_seq_len) # (1,11)
-            test_input[:,0] = 2
+            
+            trg_mask = torch.ones(trg.size(0), 201 - trg.size(1)).long().to(device)# (torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+            trg_test = torch.cat((trg, trg_mask),dim=1)
+            ys = trg_test[:, 1:].contiguous().view(-1) # size:(128x10=1280)
+            # target_mask = nn.ConstantPad2d((0,200),1) # (maybe)PAD=1..
+            dec_input = 2 * torch.ones(src.size(0),1).long().to(device) # (batch=32,1)
+            # test_input = torch.ones(src.size(0), max_seq_len) # (1,11)
+            # test_input[:,0] = 2 # START_TOKEN = 2 / (maybe)PAD=1..
             
             # for j in range(src.size(0)):
             for k in range(max_seq_len):
-                pred, _, _, _ = model(src, test_input.to(device).long()) # consider get model's mask function out
-                test_input = pred
+                # https://github.com/eagle705/pytorch-transformer-chatbot/blob/master/inference.py 참조
+                pred, _, _, _ = model(src, dec_input) # we have to shape pred(32,1,512)->but no..
+                prediction = pred[:,-1,:].unsqueeze(1)
+                pred_ids = prediction.max(dim=-1)[1] #dim=-1(=512): [1]=index (32,1)->argmax?
+                # if (pred_ids[i,-1] == 3 for i in pred.size(0)).to(torch.device('cpu')).numpy():# why cpu? vocab.END_TOKEN=3
+                #     # decoding_from_result(enc_input=enc_input, pred=pred, tokenizer=tokenizer)
+                #     break
+                    
+                dec_input = torch.cat([dec_input, pred_ids.long()], dim=1)# dec_input.unsqueeze(1),/pred_ids[0,-1].unsqueeze(0).unsqueeze(0)
                 
-            loss = criterion(pred.view(-1, pred.size(-1)), ys)
+                # if i == max_seq_len-1:
+                #     # decoding_from_result(enc_input= enc_input, pred=pred, tokenizer=tokenizer)
+                #     break
+            # print("%d th batch is over"%(i))
+            loss = F.cross_entropy(pred.view(-1, pred.size(-1)), ys)
             total_loss += loss.item()
 
-            if (i + 1) % 100 == 0:
-                p = int(100 * (i + 1) / test_len)
-                avg_loss = total_loss / 100
-                print("time= %dm: epoch %d iter %d [%s%s]  %d%%  loss = %.3f" %
-                      ((time.time() - start_time) // 60, i + 1, "".join('#' * (p // 5)), "".join(' ' * (20 - (p // 5))),
-                       p, avg_loss), end='\r')
+    avg_loss = total_loss / test_len
+    ppl = math.exp(avg_loss)
+
+    print("loss = %.3f  perplexity = %.3f" %(avg_loss, ppl))
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -143,11 +178,11 @@ def main():
     #     print(var_name, "\t", optimizer.state_dict()[var_name])
 
     # train
-    print("start training..")
-    train(model, train_iterator, optimizer, criterion, epochs)
+    # print("start training..")
+    # train(model, train_iterator, optimizer, criterion, epochs)
     # test
     print("start testing..")
-    evaluate(model, test_iterator, criterion, max_seq_len)
+    evaluate(model, test_iterator, max_seq_len)
 
 if __name__ == '__main__':
     main()

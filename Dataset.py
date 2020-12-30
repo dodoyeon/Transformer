@@ -22,7 +22,8 @@ from process_Samlynn import batch_size_fn, read_data, create_dataset, create_fie
 from torchtext.datasets import Multi30k
 from torchtext.data import Field, BucketIterator
 
-batch_size = 64
+####pytorch tutorial: torchtext translation
+batch_size = 32
 
 SRC = Field(tokenize="spacy",
             tokenizer_language="en",
