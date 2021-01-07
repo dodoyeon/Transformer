@@ -1,7 +1,6 @@
 import spacy
 import re
 
-
 class tokenize(object):
 
     def __init__(self, lang):

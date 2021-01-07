@@ -6,30 +6,35 @@ import math
 import numpy as np
 from matplotlib import pyplot as plt
 
+# emb+pos_emb = IncredableAI ref
 class Embedding(nn.Module):
     def __init__(self, voca_size, emb_dim):
         super().__init__()
-        self.embed_dim = emb_dim
         self.embedding = nn.Embedding(voca_size, emb_dim)
     def forward(self,x):
         return self.embedding(x)
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, emb_dim, max_seq_len, pos_dropout):
+    def __init__(self, emb_dim, max_seq_len=200, pos_dropout=0.1):
         super().__init__()
         pe = torch.zeros(max_seq_len, emb_dim)
-        for pos in range(max_seq_len):
-            for i in range(0, emb_dim, 2):
-                pe[pos, i] = math.sin(pos/(10000**((2*i)/emb_dim)))
-                pe[pos, i+1] = math.cos(pos/(10000**((2*(i+1))/emb_dim)))
+        # CODE IMPLEMENTATION
+        # for pos in range(max_seq_len):
+        #     for i in range(0, emb_dim, 2):
+        #         pe[pos, i] = math.sin(pos/(10000**((2*i)/emb_dim)))
+        #         pe[pos, i+1] = math.cos(pos/(10000**((2*(i+1))/emb_dim)))
+        position = torch.arange(0, max_seq_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0,emb_dim, 2).float()*(-math.log(10000.0)/emb_dim))
+        pe[:, 0::2] = torch.sin(position*div_term)
+        pe[:, 1::2] = torch.cos(position*div_term)
         pe = pe.unsqueeze(0)
         self.register_buffer('pe', pe)
         self.dropout = nn.Dropout(pos_dropout) # dropout을 해야하는가 ->네
     def forward(self, x): # in evel, x = emb_dec(64,9,512)->b=64, 9?,emb=512
         pos = self.pe[:, :x.size(1)]  # self.pe(1,200,512)
-        pos_out = x + pos
+        pos_out = x + pos.detach()
         return self.dropout(pos_out)
-
+    
 # <Positional encoding Graph>
 # max_seq_len = 200
 # embed_dim = 512 # 논문에서 d_model
@@ -113,6 +118,6 @@ class PositionalFeedForward(nn.Module):
     def forward(self, x):
         residual = x
         x = F.relu(self.weight_1(x)) # nn.ReLU?
-        x = self.weight_2(x)
         x = self.dropout(x)
+        x = self.weight_2(x)
         return x + residual

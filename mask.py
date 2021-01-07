@@ -11,6 +11,7 @@ import torch
 #         trg_mask = trg_mask & nopeak_mask  # (256, 33, 33)
 #     return src_mask, trg_mask
 
+# paul-hyun reference
 def create_padding_mask(seq_q, seq_k, pad_idx):  # pad_idx = 0
     """
     seq 형태를  (256, 33) -> (256, 1, 33) 이렇게 변경합니다.
@@ -40,3 +41,16 @@ def create_attn_decoder_mask(seq):
 
     # decoder_mask = torch.triu(decoder_mask, diagonal=1)
     return decoder_mask
+
+# # Example
+# sentences = torch.Tensor([[2., 4., 6., 2., 7., 1., 1.],
+#                           [2., 2., 4., 1., 1., 1., 1.],
+#                           [1., 2., 8., 2., 9., 3., 1.]])
+# src_mask = create_padding_mask(sentences, sentences, 1)
+# trg_mask = create_attn_decoder_mask(sentences)
+# 
+# print('sentences:', sentences.shape)
+# print('src_mask :', src_mask.shape)
+# print('src_mask :', src_mask)
+# print('trg_mask :', trg_mask.shape)
+# print('trg_mask :', trg_mask)

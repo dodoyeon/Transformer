@@ -5,10 +5,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchtext.data.metrics
 from Dataset import *
-from mask import create_padding_mask, create_attn_decoder_mask
+
 from transformer import Transformer
 
-# 논문에 나와있는 learning rate 식 구현-> 어떻게 쓸지는 좀 더 알아보자
+# 논문에 나와있는 learning rate 식 구현-> 어떻게 쓸지는 좀 더 알아보자(Incredable_ai)
 # warmup_steps = 4000 # 논문 설정
 # num_steps = 1000
 # lrs = [] 
@@ -21,12 +21,12 @@ def train(model, train_iterator, optimizer, criterion, epochs):
     for p in model.parameters():
         if p.dim() > 1: # why?
             nn.init.xavier_uniform_(p)
-    pad_idx = 0
+    pad_idx = 1
+    total_loss = 0
     start_time = time.time()
     train_len = len(train_iterator) # 227
 
     for epoch in range(epochs):
-        total_loss = 0
         for i, batch in enumerate(train_iterator):
             src = batch.src.transpose(0,1)
             trg = batch.trg.transpose(0,1)
@@ -34,6 +34,7 @@ def train(model, train_iterator, optimizer, criterion, epochs):
             trg_input = trg.clone().detach()
             trg_input[trg_input == 3] = 1 # if trg_input.data = 3 ->convert 1(<pad>)
             trg_input = trg_input[:,:-1]
+            batch_size = trg.size(0)
             # trg_input = torch.empty((trg.size(0),trg.size(1)-1))
             # for j in range(trg.size(0)): # row
             #     trg_row = trg[j,:]
@@ -42,32 +43,33 @@ def train(model, train_iterator, optimizer, criterion, epochs):
             #             trg_k = torch.cat((trg_row[:k],trg_row[k+1:]))
             #             trg_input.cat(trg_k, dim=1)
 
-            ys = trg[:,1:].contiguous().view(-1) 
-            # continous(): 
+            ys = trg[:,1:].contiguous().view(-1)
             # view():torch, same data but different shape/ -1:make 1 size row
 
             # Masking
-            enc_pad_mask = create_padding_mask(src, src, pad_idx).to(device)
-            self_pad_mask = create_padding_mask(trg_input, trg_input, pad_idx).to(device)
-            self_attn_mask = create_attn_decoder_mask(trg_input).to(device)
-            self_dec_mask = torch.gt((self_pad_mask + self_attn_mask),0).to(device) # 첫번째 인풋에 broadcastable한 두번째 아규먼트사용, input>2nd이면 true
-            enc_dec_pad_mask = create_padding_mask(trg_input, src, pad_idx).to(device)
+
+            # enc_pad_mask = create_padding_mask(src, src, pad_idx).to(device)
+            # self_pad_mask = create_padding_mask(trg_input, trg_input, pad_idx).to(device)
+            # self_attn_mask = create_attn_decoder_mask(trg_input).to(device)
+            # self_dec_mask = torch.gt((self_pad_mask + self_attn_mask),0).to(device) # 첫번째 인풋에 broadcastable한 두번째 아규먼트사용, input>2nd이면 true
+            # enc_dec_pad_mask = create_padding_mask(trg_input, src, pad_idx).to(device)
 
             optimizer.zero_grad()
-            pred, _, _, _ = model(src, trg_input, enc_pad_mask, self_dec_mask, enc_dec_pad_mask)
+            pred, self_enc_attn, self_dec_attn, dec_enc_attn = model(src, trg_input)
             loss = criterion(pred.view(-1, pred.size(-1)), ys)
             loss.backward()
             optimizer.step()
 
             total_loss += loss.item()
 
-            p = int(100 * (i + 1) / train_len)
+            p = int(100*(i+1)/train_len)
             avg_loss = total_loss / batch_size
+            ppl = math.exp(avg_loss)
 
-            print("time= %dm: epoch %d iter %d [%s%s]  %d%%  loss = %.3f" %
+            print("time= %dm: epoch %d iter %d [%s%s]  %d%%  loss = %.3f | ppl = %.3f" %
                 ((time.time() - start_time) // 60, epoch + 1, i + 1, "".join('#' * (p // 5)),
                     "".join(' ' * (20 - (p // 5))),
-                    p, avg_loss), end='\r')
+                    p, avg_loss, ppl), end='\r')
             total_loss = 0
 
         torch.save({'epoch': epoch,
@@ -75,32 +77,9 @@ def train(model, train_iterator, optimizer, criterion, epochs):
                     'optimizer state_dict': optimizer.state_dict(),
                     'loss': avg_loss}, 'weight/train_weight.pth') # new file'train_weight.pth' if not exists
 
-        print("%dm: epoch %d [%s%s]  %d%%  loss = %.3f\nepoch %d complete, loss = %.03f" % (
+        print("%dm: epoch %d [%s%s]  %d%%  loss = %.3f\nepoch %d complete, loss = %.03f | ppl = %.03f" % (
         (time.time() - start_time) // 60, epoch + 1, "".join('#' * (100 // 5)), "".join(' ' * (20 - (100 // 5))), 100, avg_loss,
-        epoch + 1, avg_loss))
-
-###얘도 pytorch_chatbot 참조###->index2word (no need)
-# def decoding_from_result(enc_input, pred, dec_output=None, tokenizer=None): # pred dec_output difference?
-#     list_input_ids = enc_input.tolist() #tolist:np,array를 list로
-#     list_pred_ids = pred.max(dim=-1)[1].tolist()
-#     input_tok = tokenizer.decode_token_ids(list_input_ids)
-#     pred_tok = tokenozer.decode_token_ids(list_pred_ids)
-#     
-#     print("input:",input_tok)
-#     print("pred: ", pred_tok)
-#     
-#     if dec_output is not None:
-#         real_tok = tokenizer.decode_token_ids(dec_output.tolist())
-#         print("real:", real_tok)
-#         prunt("")
-#         return None
-#     
-#     else: # 핑퐁의 띄어쓰기 교정기 적용?
-#         pred_str = ''.join([token.split('/')[0] for token in pred_tok[0][:-1]])
-#         pred_str = spacer.space(pred_str)
-#         print("pred_string:", pred_str)
-#         print("")
-#         return pred_str
+        epoch + 1, avg_loss, ppl))
     
 
 def evaluate(model, test_iterator, max_seq_len):
@@ -109,11 +88,13 @@ def evaluate(model, test_iterator, max_seq_len):
     # optimizer.load_state_dict(checkpoint['optimizer state_dict'])#->optimizer aren't used in test?
 
     model.eval()
-    total_loss = 0
+    # total_loss = 0
     test_len = len(test_iterator) # test_len=8(-> the number of batch?/not change) ->?? but it seems 32(batch_size changed)
     # start_time = time.time()
     with torch.no_grad():
         for i, batch in enumerate(test_iterator):
+            total_loss = 0
+            
             src = batch.src.transpose(0,1) # (128,12) -> batch_size = 128
             trg = batch.trg.transpose(0,1) # (128,11)
             
@@ -136,24 +117,25 @@ def evaluate(model, test_iterator, max_seq_len):
                 #     break
                     
                 dec_input = torch.cat([dec_input, pred_ids.long()], dim=1)# dec_input.unsqueeze(1),/pred_ids[0,-1].unsqueeze(0).unsqueeze(0)
-                
                 # if i == max_seq_len-1:
                 #     # decoding_from_result(enc_input= enc_input, pred=pred, tokenizer=tokenizer)
                 #     break
             # print("%d th batch is over"%(i))
             loss = F.cross_entropy(pred.view(-1, pred.size(-1)), ys)
             total_loss += loss.item()
-
-    avg_loss = total_loss / test_len
-    ppl = math.exp(avg_loss)
-
-    print("loss = %.3f  perplexity = %.3f" %(avg_loss, ppl))
+            avg_loss = total_loss / trg.size(0)
+            ppl = math.exp(avg_loss)
+            print("loss = %.3f  perplexity = %.3f" % (avg_loss, ppl))
+    # avg_loss = total_loss / test_len
+    # ppl = math.exp(avg_loss)
+    # 
+    # print("loss = %.3f  perplexity = %.3f" %(avg_loss, ppl))
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     n_src_tokens = len(SRC.vocab.stoi)  # vocabulary dictionary size
     n_trg_tokens = len(TRG.vocab.stoi)
-    epochs = 6
+    epochs = 18
     emb_size = 512  # emb_dim
     n_hid = 200  # encoder의 positional ff층 차원수
     n_layers = 2  # transformer encoder decoder layer 개수
@@ -173,13 +155,13 @@ def main():
     # for param_tensor in model.state_dict():
     #     print(param_tensor, "\t", model.state_dict()[param_tensor].size())
     # 
-    # print("optimier's state_dict:")
+    # print("optimizer's state_dict:")
     # for var_name in optimizer.state_dict():
     #     print(var_name, "\t", optimizer.state_dict()[var_name])
 
     # train
-    # print("start training..")
-    # train(model, train_iterator, optimizer, criterion, epochs)
+    print("start training..")
+    train(model, train_iterator, optimizer, criterion, epochs)
     # test
     print("start testing..")
     evaluate(model, test_iterator, max_seq_len)
