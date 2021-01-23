@@ -27,7 +27,7 @@ class examples():
 
 class SOM():
     def __init__(self, num_centeroid, dim, learning_rate, epoch, num_example, distance=True):
-        self.num_centeroid = num_centeroid
+
         self.centeroid = torch.rand(size=(self.num_centeroid, dim)) # dim = same as dataset_dim
         self.distance = distance
         self.lr = learning_rate
@@ -37,13 +37,13 @@ class SOM():
         self.neigy = torch.arange(dim)
 
     def find_BMU(self, input):
-        #find BMU index
+        #find BMU index ->to find closest centroid index about input
         neighbor_value = 0.0
         if self.distance: # input=tensor
             neighbor_value = self.eucli(self.centeroid, input)
         else:
             neighbor_value = self.cos(self.centeroid, input)
-        bmu_idx = torch.argmin(neighbor_value) # about all centroids 
+        bmu_idx = torch.argmin(neighbor_value) 
         return bmu_idx
 
     def eucli(self, centeroid, input): # input=tensor([0.658,0.473])
@@ -57,7 +57,7 @@ class SOM():
     def neighbor(self, bmu, sigma): # gaussian function/bmu= 1 winning center point, sigma=number
         d = 2 * np.pi * sigma * sigma
         bmu = bmu.unsqueeze(0) # tensor([0.2354,0.8374])->tensor([[0.2354,0.8374]])
-        neighbor_value = torch.exp(torch.cdist(self.centeroid, bmu) / d) # distance of winning center and other centroids
+        neighbor_value = torch.exp(-torch.cdist(self.centeroid, bmu) / d) # distance of winning center and other centroids
         # torch.cdist:
         return neighbor_value # =tensor?
 
@@ -73,30 +73,30 @@ class SOM():
         return
 
     def clustering(self, inputs):
-        #find centeroid
+        #find centeroid?/ using updated centroid
         for i in range(len(inputs.example)): # input data 
             if self.distance:
                 dist = self.eucli(self.centeroid, inputs.example[i])
                 id = torch.argmin(dist) # find the closest cneter of each datapoints
-                inputs.example[i].idx_center(id) # assigned center
+                inputs.example[i].idx_center(id) # mapping center with input points
 
             else:
-                id = self.cos(self.centeroid, inputs[i])
-                id = torch.argmin(id)
+                dist = self.cos(self.centeroid, inputs[i])
+                id = torch.argmin(dist)
                 inputs.example[i].idx_center(id)
 
-    def mapping(self, inputs):
-        pca = PCA(n_components=5)
-        pca_centeroid = pca.fit_transform(self.centeroid)
-        pca_input = pca.fit_transform(inputs)
-
-        explained_variance = pca.explained_variance_ratio_
-        return pca_centeroid, pca_input, explained_variance
+    # def mapping(self, inputs):
+    #     pca = PCA(n_components=5)
+    #     pca_centeroid = pca.fit_transform(self.centeroid)
+    #     pca_input = pca.fit_transform(inputs)
+    # 
+    #     explained_variance = pca.explained_variance_ratio_
+    #     return pca_centeroid, pca_input, explained_variance
 
     def visualize(self, data):
         color = ['red', 'green', 'blue', 'yellow', 'black', 'c', 'm', ]
         #after update
-        self.clustering(data)
+        self.clustering(data) # input-centroid mapping
         #pca_centeroid, pca_input = self.mapping(input)
         pca_centeroid, pca_input = self.centeroid, data
 
@@ -109,12 +109,12 @@ class SOM():
         plt.show()
 
 if __name__ == "__main__":
-    epoch = 10
+    epoch = 3
     num_centroid = 7
     dim = 2
-    learning_rate = 0.01
+    learning_rate = 0.1
     num_example = 100
-    sigma = 5
+    sigma = 0.1
 
     data = torch.rand(size=(num_example, dim)) # tensor(100,2)
     data = examples(data)
@@ -124,17 +124,6 @@ if __name__ == "__main__":
     for _ in range(epoch):
         data.shuffle()
         for example in data.example: # input each 1 datapoint (x,y)
-            model.update(example, sigma) # update all centroids
+            model.update(example, sigma) # update centroids using all inputs
 
-    model.visualize(data) # (=includes clutering), with same input data
-
-# # To check the cdist: distance row-wise
-# a = torch.tensor([[0.9041,  0.0196], [-0.3108, -2.4423], [-0.4821,  1.059]])
-# b = torch.tensor([[-2.1763, -0.4713], [-0.6986,  1.3702]])
-# print(torch.cdist(a, b, p=2))
-# 
-# print(torch.dist(torch.tensor([0.9041,  0.0196]),torch.tensor([-2.1763, -0.4713])))
-# print(torch.dist(torch.tensor([0.9041,  0.0196]),torch.tensor([-0.6986,  1.3702])))
-# 
-# print(torch.dist(torch.tensor([-0.3108, -2.4423]),torch.tensor([-2.1763, -0.4713])))
-# print(torch.dist(torch.tensor([-0.3108, -2.4423]),torch.tensor([-0.6986,  1.3702])))
+    model.visualize(data) # 

@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchtext.data.metrics
 from Dataset import *
-
+import numpy as np
 from transformer import Transformer
 
 # 논문에 나와있는 learning rate 식 구현-> 어떻게 쓸지는 좀 더 알아보자(Incredable_ai)
@@ -62,24 +62,36 @@ def train(model, train_iterator, optimizer, criterion, epochs):
 
             total_loss += loss.item()
 
-            p = int(100*(i+1)/train_len)
-            avg_loss = total_loss / batch_size
-            ppl = math.exp(avg_loss)
+            # WRONG LOSS & PPL PRINT
+            # p = int(100*(i+1)/train_len)
+            # avg_loss = total_loss / batch_size
+            # ppl = math.exp(avg_loss)
+            #
+            # print("time= %dm: epoch %d iter %d [%s%s]  %d%%  loss = %.3f | ppl = %.3f" %
+            #     ((time.time() - start_time) // 60, epoch + 1, i + 1, "".join('#' * (p // 5)),
+            #         "".join(' ' * (20 - (p // 5))),
+            #         p, avg_loss, ppl), end='\r')
+            # total_loss = 0
 
-            print("time= %dm: epoch %d iter %d [%s%s]  %d%%  loss = %.3f | ppl = %.3f" %
-                ((time.time() - start_time) // 60, epoch + 1, i + 1, "".join('#' * (p // 5)),
-                    "".join(' ' * (20 - (p // 5))),
-                    p, avg_loss, ppl), end='\r')
-            total_loss = 0
+            interval = 100 # batch 단위로 프린트 해야함 jwp
+            # print(i)
+            if i % interval == 0 and i > 0:
+                print(i)
+                avg_loss = total_loss / interval
+                ppl = math.exp(avg_loss)
+
+                print("epoch: %d | i: %d | loss: %.3f | ppl: %.3f" % (epoch+1,i,avg_loss,ppl))
+                total_loss = 0
 
         torch.save({'epoch': epoch,
                     'model state_dict': model.state_dict(),
-                    'optimizer state_dict': optimizer.state_dict(),
-                    'loss': avg_loss}, 'weight/train_weight.pth') # new file'train_weight.pth' if not exists
+                    'optimizer state_dict': optimizer.state_dict()},
+                    # 'loss': avg_loss}
+                    'weight/train_weight.pth') # new file'train_weight.pth' if not exists
 
-        print("%dm: epoch %d [%s%s]  %d%%  loss = %.3f\nepoch %d complete, loss = %.03f | ppl = %.03f" % (
-        (time.time() - start_time) // 60, epoch + 1, "".join('#' * (100 // 5)), "".join(' ' * (20 - (100 // 5))), 100, avg_loss,
-        epoch + 1, avg_loss, ppl))
+        # print("%dm: epoch %d [%s%s]  %d%%  loss = %.3f\nepoch %d complete, loss = %.03f | ppl = %.03f" % (
+        # (time.time() - start_time) // 60, epoch + 1, "".join('#' * (100 // 5)), "".join(' ' * (20 - (100 // 5))), 100, avg_loss,
+        # epoch + 1, avg_loss, ppl))
     
 
 def evaluate(model, test_iterator, max_seq_len):
@@ -88,13 +100,11 @@ def evaluate(model, test_iterator, max_seq_len):
     # optimizer.load_state_dict(checkpoint['optimizer state_dict'])#->optimizer aren't used in test?
 
     model.eval()
-    # total_loss = 0
+    total_loss = 0
     test_len = len(test_iterator) # test_len=8(-> the number of batch?/not change) ->?? but it seems 32(batch_size changed)
     # start_time = time.time()
     with torch.no_grad():
         for i, batch in enumerate(test_iterator):
-            total_loss = 0
-            
             src = batch.src.transpose(0,1) # (128,12) -> batch_size = 128
             trg = batch.trg.transpose(0,1) # (128,11)
             
@@ -120,25 +130,27 @@ def evaluate(model, test_iterator, max_seq_len):
                 # if i == max_seq_len-1:
                 #     # decoding_from_result(enc_input= enc_input, pred=pred, tokenizer=tokenizer)
                 #     break
+
             # print("%d th batch is over"%(i))
             loss = F.cross_entropy(pred.view(-1, pred.size(-1)), ys)
             total_loss += loss.item()
-            avg_loss = total_loss / trg.size(0)
-            ppl = math.exp(avg_loss)
-            print("loss = %.3f  perplexity = %.3f" % (avg_loss, ppl))
-    # avg_loss = total_loss / test_len
-    # ppl = math.exp(avg_loss)
-    # 
-    # print("loss = %.3f  perplexity = %.3f" %(avg_loss, ppl))
+            interval = 10  # batch 단위로 프린트 해야함 jwp
+
+            if i % interval == 0 and i > 0:
+                avg_loss = total_loss / interval
+                ppl = math.exp(avg_loss)
+                print("i: %d | loss: %.3f | ppl: %.3f" % (i,avg_loss,ppl))
+                total_loss = 0 # 왜 train ppl은 약 70정도였는데 test ppl은 약 5인가...?
+
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     n_src_tokens = len(SRC.vocab.stoi)  # vocabulary dictionary size
     n_trg_tokens = len(TRG.vocab.stoi)
-    epochs = 18
+    epochs = 8
     emb_size = 512  # emb_dim
-    n_hid = 200  # encoder의 positional ff층 차원수
-    n_layers = 2  # transformer encoder decoder layer 개수
+    n_hid = 2048  # encoder의 positional ff층 차원수 jwp
+    n_layers = 6  # transformer encoder decoder layer 개수 jwp
     n_head = 8  # multi-head attention head 개수
     d_model = 512
     max_seq_len = 200
@@ -146,7 +158,7 @@ def main():
 
     model = Transformer(src_voca_size=n_src_tokens, trg_voca_size=n_trg_tokens, emb_dim=emb_size, d_ff=n_hid,
                         n_layers=n_layers, n_head=n_head).to(device)
-    criterion = nn.CrossEntropyLoss() # optimizer,loss->to(device) x
+    criterion = nn.CrossEntropyLoss(ignore_index=1) # optimizer,loss->to(device) 안함/ <pad> index=1 jwp
     optimizer = torch.optim.Adam(model.parameters(), betas=(0.9, 0.98), lr=lr)
 
     # print("model's state_dict:")  # 모델의 학습가능한 parameter는 model.parameters()로 접근한다
@@ -160,8 +172,8 @@ def main():
     #     print(var_name, "\t", optimizer.state_dict()[var_name])
 
     # train
-    print("start training..")
-    train(model, train_iterator, optimizer, criterion, epochs)
+    # print("start training..")
+    # train(model, train_iterator, optimizer, criterion, epochs)
     # test
     print("start testing..")
     evaluate(model, test_iterator, max_seq_len)
