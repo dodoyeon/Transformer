@@ -3,13 +3,16 @@ import torch
 from torch import nn
 import numpy as np
 import random
-from Dataset import tr_cent_data, te_cent_data, tr_centroid, te_centroid
+from Dataset import tr_cent_data, te_cent_data, tr_centroid
 # from metrics.LayerWiseMetrics import cdist2
 # from kmeans_pytorch import kmeans
 from sklearn import metrics
 from sklearn.cluster import KMeans
 import gzip
 import pickle
+from sklearn.manifold import TSNE
+# from torch.utils.tensorboard import SummaryWriter
+import matplotlib.pyplot as plt
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -33,7 +36,7 @@ class SOM_Memory(nn.Module):
         self.hidden_size = hidden_size
         self.max_seq_length = max_seq_length
         # self.device = device
-        self.centroid = nn.Embedding.from_pretrained(torch.normal(-0.01, 0.2, size=(num_centroid,
+        self.centroid = nn.Embedding.from_pretrained(torch.normal(-0.07, 0.39, size=(num_centroid,
                                                     max_seq_length * hidden_size)), freeze=False)
         # self.centroid = torch.normal(-0.01, 0.44, size=(num_centroid,max_seq_length * hidden_size))
         self.lr = lr
@@ -69,7 +72,7 @@ class SOM_Memory(nn.Module):
 
     def neighbor(self,bmu, centroid): # bmu=selected cent/centroid=cents
         dist = cdist2(bmu, centroid)
-        value = torch.exp(-dist / 200)
+        value = torch.exp(-dist / 1000)
         return value
 
     def update_lr(self, length):
@@ -84,19 +87,40 @@ def cent_table(centroid_updated, centroid_trg):
     dist_sort = dist.view(1,-1) # (1,64)
     sort = torch.argsort(dist_sort,dim=1).squeeze()
     i=0
-    while len(table) < 8:
-        idx = sort[i]
-        row_idx = (idx // dist.size(0)).data[0]  # 타겟에 대한 업데이트 센트로이드의 인덱스
-        col_idx = (idx % dist.size(0)).data[0] # 업데이트에 대한 타겟의 인덱스
-        ten_table = torch.tensor(table)[:, 1]
-        if row_idx in ten_table:
-            continue
-        else:
-            table.append([row_idx, col_idx])
+    idx = sort[i].item()
+    row_idx = (idx // dist.size(0))  # 타겟에 대한 업데이트 센트로이드의 인덱스
+    col_idx = (idx % dist.size(0))  # 업데이트에 대한 타겟의 인덱스
+    table.append([row_idx, col_idx])
+    i += 1
+    while len(table) < dist.size(0):
+        if i < (dist.size(0))**2:
+            idx = sort[i].item()
+            row_idx = (idx // dist.size(0)) # 타겟에 대한 업데이트 센트로이드의 인덱스
+            col_idx = (idx % dist.size(0)) # 업데이트에 대한 타겟의 인덱스
+            ten_table = torch.tensor(table)[:, 0]
+            ten_table1 = torch.tensor(table)[:, 1]
             
-        if len(table) == 8:
-            break
-        i+=1
+            if (row_idx in ten_table.tolist()) or (col_idx in ten_table1.tolist()):
+                i += 1
+                if len(table) == 8:
+                    break
+                else:
+                    continue
+            else:
+                table.append([row_idx, col_idx])
+        else:
+            ten_table2 = torch.tensor(table)
+            check = torch.arange(dist.size(0))
+            for m in range(dist.size(0)):
+                if check[m] not in ten_table2[:, 0]:
+                    s0 = check[m]
+                if check[m] not in ten_table2[:, 1]:
+                    s1 = check[m]
+            table.append([s0, s1])
+            # break 를 쓰면 안된다..table을 7개만 만들고 멈출수 있음
+        i += 1
+    table = torch.tensor(table)
+
     # for i in range(dist.size(0)):
         # row_idx = torch.argmin(dist, dim=-1)
         # col_idx = torch.min(torch.argmin(dist,dim=0),dim=-1)
@@ -122,9 +146,22 @@ def cent_table(centroid_updated, centroid_trg):
     # table = torch.argmin(dist,dim=-1) # FIXED (8)
     return table
 
-def mapping(idx,table):
-    mapped_idx = table[idx.long()] # IndexError: tensors used as indices must be long, byte or bool tensor
+def mapping(idx,table): # idx:tensor table:tensor?or list?
+    dict_table = {}
+    mapped_idx = []
+    for i in range(table.size(0)):
+        dict_table[table[i, 0].item()] = table[i, 1].item()
+
+    for j in range(idx.size(0)):
+        map_idx = dict_table[idx[j].item()]
+        mapped_idx.append(map_idx)
+    mapped_idx = torch.tensor(mapped_idx)
     return mapped_idx
+
+def select_n_random(data, labels, n=100):
+    assert len(data) == len(labels)
+    perm = torch.randperm(len(data))[:n] # 주어진 범위 내의 정수를 랜덤하게 생성 (=indices)
+    return data[perm], labels[perm]
 
 if __name__=="__main__":
     num_centroid = 8
@@ -136,11 +173,15 @@ if __name__=="__main__":
     te_example_size = 640
     batch_size = 32
     num_centroid = 8
-    learning_rate = 1e-2
+    learning_rate = 5e-5
     epochs = 5
 
     # with gzip.open('tr_data.pickle','rb') as f:
     #     tr_cent_data = pickle.load(f)
+
+    t_sne = TSNE(n_components=2, random_state=0)  # n_component= embedded space의 dim
+    colors = ['r', 'b', 'g', 'y', 'k',
+              'violet', 'springgreen', 'dodgerblue']
 
     model = SOM_Memory(num_centroid, hidden_size, max_seq_length, learning_rate).to(device)
     tr_data = tr_cent_data[:,:-1] # (320,98304)
@@ -148,34 +189,61 @@ if __name__=="__main__":
 
     model.train()
     model.centroid.weight.requires_grad = True
-    correct = 0
+    # correct = 0
     
     print("clustering start")
+    cent_wb = torch.zeros(8, 98304)
     for epoch in range(epochs): # unsupervised learning 이니까 아마도 에폭이 의미가 없는것 같다
         # For silhouette score
         tr_out = torch.ones(1).unsqueeze(0).to(device)
         model.update_lr(batch_size*(epoch))
-        for b in range(0, len(tr_data),batch_size):
+        for b in range(0, len(tr_data), batch_size):
             batch = tr_data[b:b + batch_size,:].to(device) # tensor(32,98304)
-            # batch_trg = tr_target[b:b + batch_size].to(device)
+            batch_trg = tr_target[b:b + batch_size].to(device)
             output,centroid, result = model(batch)
             
             tr_out = torch.cat((tr_out, result.unsqueeze(1)), 0)
-            # correct += (real_idx == batch_trg).sum().item()
+            interval = 50
 
-        # mapping predict and real
-        table = cent_table(centroid.cpu(), tr_centroid)  
-        real_idx = mapping(tr_out[1:,:], table).squeeze()
-        correct += (real_idx == tr_target).sum().item()
+            if b % interval == 0 and b > 0:
+                # avg_loss = total_loss / interval
+                # ppl = math.exp(avg_loss)
+
+                # print("epoch: %d | b: %d | loss: %.3f " % (epoch + 1, b, avg_loss))  # | ppl: %.3f , ppl
+                # writer.add_scalar('Loss/train', avg_loss, (epoch * 6400 + b))
+                cent_wb = torch.cat((cent_wb, centroid.detach().cpu()), dim=0)
+                # total_loss = 0
         
         # Get Silhouette Score
         tr_out_arr = tr_out[1:,:].squeeze().cpu().detach().numpy()
         tr_data_arr = tr_data.numpy()
         s_score = metrics.silhouette_score(tr_data_arr, tr_out_arr, metric='euclidean')
-        print("Accuracy of the Cluster in training: %d epochs| %.3f %%" %(epoch, 100*correct/tr_example_size))
         print("train Silhouette score: %.3f" %(s_score))
-        correct = 0
         
+    # mapping predict and real
+    table = cent_table(centroid.cpu(), tr_centroid)
+    real_idx = mapping(tr_out[1:, :].squeeze().cpu(), table)  # tr_out[1:,:].squeeze() :3200
+    correct += (real_idx == tr_target).sum().item()
+    print("Accuracy of the Cluster in training: %d epochs| %.3f %%" % (epoch, 100 * correct / tr_example_size))
+    correct = 0
+
+    # T-SNE visualization
+    cat = torch.cat((tr_data[:500, :].cpu(), tr_centroid.cpu(), cent_wb[8:, :]),
+                    dim=0)  # (500,98304) (8,98304) (8*36,98304)
+    centroid_tr = t_sne.fit_transform(cat.numpy())
+
+    for i in range((epoch+1)*7):
+        # for j in range(num_centroid):
+        plt.figure(i)
+        plt.scatter(centroid_tr[:500, 0], centroid_tr[:500, 1], c='gray', marker='o') # tr_data
+        plt.scatter(centroid_tr[500:508, 0], centroid_tr[500:508, 1], c=colors, marker='x') # tr_target
+        plt.scatter(centroid_tr[508+(i*8):508+((i+1)*8), 0], centroid_tr[508+(i*8):508+((i+1)*8), 1], c=colors, marker='s') # cent_wb
+
+        plt.title("t-SNE dataset+centroid epoch: %d b: %d" % ((i//7), (i%7)))
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.show()
+
     # epoch 설정없이
     # for b in range(0, len(tr_data), batch_size):
     #     batch = tr_data[b:b + batch_size, :].to(device)  # tensor(32,98305)
@@ -195,6 +263,7 @@ if __name__=="__main__":
     te_target = te_cent_data[:, -1]  # (320)
     correct = 0
     te_out = torch.ones(1).unsqueeze(0).to(device)
+    cent_wb = torch.zeros(8, 98304)
     with torch.no_grad():
         model.centroid.weight.requires_grad = False
         for b in range(0, len(te_data), batch_size):
@@ -209,12 +278,12 @@ if __name__=="__main__":
         table = cent_table(centroid.cpu(), te_centroid)  # table tensor([2,3,4,4,1,1,1,4])
         real_idx = mapping(te_out[1:, :], table).squeeze()
         correct += (real_idx == te_target).sum().item()
+        print("Accuracy of the Cluster in testing: %.3f %%" % (100 * correct / te_example_size))
 
         # Get Silhouette Score
         te_out_arr = te_out[1:, :].squeeze().cpu().detach().numpy()
         te_data_arr = te_data.numpy()
         s_score = metrics.silhouette_score(te_data_arr, te_out_arr, metric='euclidean')
-        print("Accuracy of the Cluster in testing: %.3f %%" % (100 * correct / te_example_size))
         print("test Silhouette score: %.3f" % (s_score))
     
     # k means clustering test

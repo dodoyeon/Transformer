@@ -1,27 +1,26 @@
 import pdb
 import torch
 from torch import nn
+import math
 # from metrics.LayerWiseMetrics import cdist2, linear_CKA_loss
-
+from sklearn import metrics
 import random
 from Dataset import tr_cent_data, te_cent_data
 
-class Memory(nn.Module):
+class loss_Memory(nn.Module):
     def __init__(self, num_centroid, hidden_size, max_seq_length):
-        super().__init__()
+        super(loss_Memory, self).__init__()
         self.num_centroid = num_centroid
         self.hidden_size = hidden_size
         self.max_seq_length = max_seq_length
         #self.device = config.device
         self.centroid = nn.Embedding.from_pretrained(torch.normal(-0.01, 0.2, size=(self.num_centroid,
                                           self.max_seq_length *
-                                          self.hidden_size)))
+                                          self.hidden_size)), freeze= False)
         #self.length = config.length
         #self.lr = config.learning_rate
         
     def forward(self, input):
-        #new_centroid = self.centroid.clone().detach()
-        #pdb.set_trace()
         # 인풋과 센트로이드 사이 거리(loss)구하고 제일 가까운 센터 구함
         centroid = self.centroid.weight.view(-1, self.max_seq_length, self.hidden_size)
         input = input.view(-1,self.max_seq_length, self.hidden_size)
@@ -33,14 +32,10 @@ class Memory(nn.Module):
         selected_cetroid = self.centroid(idx)
         selected_centroid = selected_cetroid.view(-1, self.max_seq_length, self.hidden_size)
         cka_loss = self.linear_cka_loss(input, selected_centroid, matrix=False)
-        #print("CKA loss : {}".format(cka_loss.item()))
-        #print("CKA loss matrix \n")
-        #print(cka_loss_matrix)
-        #print("CKA idx \n")
-        #print(idx)
-        #print(cka_loss, cka_loss_matrix, self.centroid)
-        return (cka_loss, cka_loss_matrix, self.centroid), idx
-    
+        return cka_loss, cka_loss_matrix, self.centroid, idx
+
+    # 논문 "Similarity of Neural Network Representations Revisited": Hilbert-Schmidt Independence Criterion
+    # centered kernel alignment(CKA)
     def linear_cka_loss(self, x, y, matrix=True):
         hsic = self.linear_HSIC(x, y)
         var1 = torch.sqrt(self.linear_HSIC(x, x))
@@ -78,35 +73,86 @@ if __name__ == "__main__":
     epochs = 5
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model = Memory(num_centroid, hidden_size, max_seq_length).to(device)
+    model = loss_Memory(num_centroid, hidden_size, max_seq_length).to(device)
+    # criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD(model.parameters(),lr=learning_rate)
     tr_data = tr_cent_data[:, :-1]  # (320,98304)
     tr_target = tr_cent_data[:, -1]  # (320)
 
     model.train()
     model.centroid.weight.requires_grad = True
+    total_loss = 0
     correct = 0
     for epoch in range(epochs):  # unsupervised learning 이니까 아마도 에폭이 의미가 없는것 같다
+        # For silhouette score
+        tr_out = torch.ones(1).unsqueeze(0).to(device)
         for b in range(0, len(tr_data), batch_size):
-            batch = tr_data[b:b + batch_size, :].to(device)  # tensor(32,98305)
-            batch_trg = tr_target[b:b + batch_size].to(device)
-            output, result = model(batch)
+            tr_batch = tr_data[b:b + batch_size, :].to(device)  # tensor(32,98305)
+            tr_batch_trg = tr_target[b:b + batch_size].to(device)
 
-            correct += (result == batch_trg).sum().item()
+            # optimizer.zero_grad()
+            cka_loss, cka_loss_matrix, centroid, result = model(tr_batch) # loss(0.1553) loss_mat(32,8) cent(8,98304) res(32)
+            tr_out = torch.cat((tr_out, result.unsqueeze(1).float()), 0)
+            
+            # 잘못 생각한 cross entropy 백프롭
+            # cross_loss = criterion(result.view(-1, result.size(-1)), tr_batch_trg)
+            # cross_loss.backward()
 
-        print("Accuracy of the Cluster in training: %d epochs| %.3f %%" % (
-        epoch, 100 * correct / tr_example_size))
+            # cka_loss는 grad_fn이 없어서 optimizer와 backprop() 식으로는 안된다
+            cka_loss.backward()
+            optimizer.step()
+            total_loss += cka_loss.item()
+
+            interval = 500  # batch가 100개
+            # print(i)
+            if b % interval == 0 and b > 0:
+                # print(b)
+                avg_loss = total_loss / interval
+                ppl = math.exp(avg_loss)
+
+                print("epoch: %d | b: %d | loss: %.3f | ppl: %.3f" % (epoch + 1, b, avg_loss, ppl))
+                total_loss = 0
+
+        correct += (tr_out[1:, :].squeeze().cpu() == tr_target).sum().item()
+        print("Accuracy of the Cluster in training: %d epochs| %.3f %%" % (epoch, 100 * correct / tr_example_size))
         correct = 0
+
+        # Get Silhouette Score
+        tr_out_arr = tr_out[1:, :].squeeze().cpu().detach().numpy()
+        tr_data_arr = tr_data.numpy()
+        s_score = metrics.silhouette_score(tr_data_arr, tr_out_arr, metric='euclidean')
+        print("train Silhouette score: %.3f" % (s_score))
+        
 
     model.eval()
     te_data = te_cent_data[:, :-1]  # (320,98304)
     te_target = te_cent_data[:, -1]  # (320)
+    total_loss = 0
+    te_out = torch.ones(1).unsqueeze(0).to(device)
     correct = 0
     with torch.no_grad():
         model.centroid.weight.requires_grad = False
         for b in range(0, len(te_data), batch_size):
-            batch = te_data[b:b + batch_size, :].to(device)
-            batch_trg = te_target[b:b + batch_size].to(device)
-            output, pred = model(batch)
+            te_batch = te_data[b:b + batch_size, :].to(device)
+            te_batch_trg = te_target[b:b + batch_size].to(device)
+            cka_loss, cka_loss_matrix, centroid, pred = model(te_batch)
+            total_loss += cka_loss.item()
 
-            correct += (result == batch_trg).sum().item()
-        print("Accuracy of the Cluster in testing: %.3f %%" % (100 * correct / tr_example_size))
+            te_out = torch.cat((te_out, pred.unsqueeze(1).float()), 0)
+            
+            interval = 10  # batch 단위로 프린트 해야함 jwp
+            if b % interval == 0 and b > 0:
+                avg_loss = total_loss / interval
+                ppl = math.exp(avg_loss)
+                print("b: %d | loss: %.3f | ppl: %.3f" % (b, avg_loss, ppl))
+                total_loss = 0
+
+        # Get Silhouette Score
+        te_out_arr = te_out[1:, :].squeeze().cpu().detach().numpy()
+        te_data_arr = te_data.numpy()
+        s_score = metrics.silhouette_score(te_data_arr, te_out_arr, metric='euclidean')
+        print("train Silhouette score: %.3f" % (s_score))
+
+        # mapping predict and real
+        correct += (te_out[1:, :].squeeze().cpu() == te_target).sum().item()
+        print("Accuracy of the Cluster in testing: %.3f %%" % (100 * correct / te_example_size))

@@ -8,6 +8,9 @@ from Dataset import *
 import numpy as np
 from transformer import Transformer
 
+# tensorboard
+from torch.utils.tensorboard import SummaryWriter
+
 # 논문에 나와있는 learning rate 식 구현-> 어떻게 쓸지는 좀 더 알아보자(Incredable_ai)
 # warmup_steps = 4000 # 논문 설정
 # num_steps = 1000
@@ -47,7 +50,6 @@ def train(model, train_iterator, optimizer, criterion, epochs):
             # view():torch, same data but different shape/ -1:make 1 size row
 
             # Masking
-
             # enc_pad_mask = create_padding_mask(src, src, pad_idx).to(device)
             # self_pad_mask = create_padding_mask(trg_input, trg_input, pad_idx).to(device)
             # self_attn_mask = create_attn_decoder_mask(trg_input).to(device)
@@ -74,11 +76,11 @@ def train(model, train_iterator, optimizer, criterion, epochs):
             # total_loss = 0
 
             interval = 100 # batch 단위로 프린트 해야함 jwp
-            # print(i)
             if i % interval == 0 and i > 0:
-                print(i)
                 avg_loss = total_loss / interval
                 ppl = math.exp(avg_loss)
+                writer.add_scalar('training loss', avg_loss, epoch * len(train_iterator) + i)
+                writer.add_scalar('training perplexity', ppl, epoch * len(train_iterator) + i)
 
                 print("epoch: %d | i: %d | loss: %.3f | ppl: %.3f" % (epoch+1,i,avg_loss,ppl))
                 total_loss = 0
@@ -134,14 +136,16 @@ def evaluate(model, test_iterator, max_seq_len):
             # print("%d th batch is over"%(i))
             loss = F.cross_entropy(pred.view(-1, pred.size(-1)), ys)
             total_loss += loss.item()
-            interval = 10  # batch 단위로 프린트 해야함 jwp
 
+            interval = 10  # batch 단위로 프린트 해야함 jwp
             if i % interval == 0 and i > 0:
                 avg_loss = total_loss / interval
                 ppl = math.exp(avg_loss)
-                print("i: %d | loss: %.3f | ppl: %.3f" % (i,avg_loss,ppl))
-                total_loss = 0 # 왜 train ppl은 약 70정도였는데 test ppl은 약 5인가...?
+                writer.add_scalar('training loss', avg_loss, i)
+                writer.add_scalar('training perplexity', ppl, i)
 
+                print("i: %d | loss: %.3f | ppl: %.3f" % (i, avg_loss, ppl))
+                total_loss = 0 # 왜 train ppl은 약 70정도였는데 test ppl은 약 5인가...?
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -156,10 +160,17 @@ def main():
     max_seq_len = 200
     lr = 0.0001
 
+    writer = SummaryWriter('runs/handmade_Tr_test_1')\
+
     model = Transformer(src_voca_size=n_src_tokens, trg_voca_size=n_trg_tokens, emb_dim=emb_size, d_ff=n_hid,
                         n_layers=n_layers, n_head=n_head).to(device)
     criterion = nn.CrossEntropyLoss(ignore_index=1) # optimizer,loss->to(device) 안함/ <pad> index=1 jwp
     optimizer = torch.optim.Adam(model.parameters(), betas=(0.9, 0.98), lr=lr)
+
+    dataiter = iter(train_iterator)
+    data, label = next(dataiter)
+    writer.add_graph(model, data)
+    writer.close()
 
     # print("model's state_dict:")  # 모델의 학습가능한 parameter는 model.parameters()로 접근한다
     # # state_dict: 각 레이어를 파라미터 tensor와 매핑하는 PYTHON dict objects/ cnn, linear 등이나 registered buffer(batchnorm)등 저장
@@ -172,11 +183,11 @@ def main():
     #     print(var_name, "\t", optimizer.state_dict()[var_name])
 
     # train
-    # print("start training..")
-    # train(model, train_iterator, optimizer, criterion, epochs)
+    print("start training..")
+    train(model, train_iterator, optimizer, criterion, epochs)
     # test
     print("start testing..")
     evaluate(model, test_iterator, max_seq_len)
-
+#
 if __name__ == '__main__':
     main()
