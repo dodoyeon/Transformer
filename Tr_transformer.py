@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from Layer import Encoder, Decoder
+from Tr_Layer import Encoder, Decoder
 # from mask import create_padding_mask, create_attn_decoder_mask
 
 class Transformer(nn.Module): # encoder와 decoder의 emb_dim등은 다르려나?

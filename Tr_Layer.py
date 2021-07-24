@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from Attention import Embedding, PositionalEncoding, MultiHeadAttention, PositionalFeedForward
-from mask import create_padding_mask, create_attn_decoder_mask
+from Tr_Attention import Embedding, PositionalEncoding, MultiHeadAttention, PositionalFeedForward
+from Tr_mask import create_padding_mask, create_attn_decoder_mask
 
 # paul-hyun tutorial reference
 class EncoderLayer(nn.Module):
