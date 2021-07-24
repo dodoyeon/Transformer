@@ -1,5 +1,8 @@
 weight/
 data/
+.data/
+.vscode/
 runs/
 HJ_cluster_test/cola_dataset/
 BERT_feature/
+failed_code/
